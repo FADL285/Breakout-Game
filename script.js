@@ -91,16 +91,57 @@ function drawBricks() {
   });
 }
 
+// 4- Move Paddle function
+function movePaddle() {
+  paddle.x += paddle.dx;
+
+  // Wall detection
+  if (paddle.x + paddle.w > canvas.width - 2) {
+    paddle.x = canvas.width - paddle.w - 2;
+  } else if (paddle.x < 2) {
+    paddle.x = 2;
+  }
+}
+
 // Main draw function
 function drawCanvas() {
+  // clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBall();
   drawPaddle();
   drawScore();
   drawBricks();
 }
 
+// update function
+function update() {
+  movePaddle();
+
+  drawCanvas();
+
+  requestAnimationFrame(update);
+}
+
+// keyDown event Function
+function keyDown(e) {
+  if (e.keyCode === 39) {
+    paddle.dx = paddle.speed;
+  } else if (e.keyCode === 37) {
+    paddle.dx = -paddle.speed;
+  }
+}
+// keyUp event Function
+function keyUp(e) {
+  paddle.dx = 0;
+}
+
 // ////////////////////////////////////////
 // ! Event Listener
+
+// keyboard events
+window.addEventListener("keydown", keyDown);
+window.addEventListener("keyup", keyUp);
+
 // toggle rules container events
 rulesBtn.addEventListener("click", () => {
   rules.classList.add("show");
@@ -117,4 +158,4 @@ closeBtn.addEventListener("click", () => {
 });
 // ///////////////////////////////////////
 
-drawCanvas();
+update();
