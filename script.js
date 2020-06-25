@@ -43,14 +43,18 @@ const brickInfo = {
 };
 
 // create bricks
-let bricks = [];
+const bricks = [];
 for (let i = 0; i < bricksRowCount; i++) {
   bricks[i] = [];
 
   for (let j = 0; j < bricksColCount; j++) {
     const x = i * (brickInfo.w + brickInfo.padding) + brickInfo.offsetX;
     const y = j * (brickInfo.h + brickInfo.padding) + brickInfo.offsetY;
-    bricks[i][j] = { x, y, ...brickInfo };
+    bricks[i][j] = {
+      x,
+      y,
+      ...brickInfo
+    };
   }
 }
 
@@ -83,7 +87,7 @@ function drawBricks() {
   bricks.forEach((column) => {
     column.forEach((brick) => {
       ctx.beginPath();
-      ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+      ctx.rect(brick.x, brick.y, brick.w, brick.h);
       ctx.fillStyle = brick.visible ? "#0095dd" : "transparent";
       ctx.fill();
       ctx.closePath();
@@ -91,7 +95,7 @@ function drawBricks() {
   });
 }
 
-// 4- Move Paddle function
+// 5- Move Paddle on canvas function
 function movePaddle() {
   paddle.x += paddle.dx;
 
@@ -102,6 +106,73 @@ function movePaddle() {
     paddle.x = 2;
   }
 }
+
+// 6- Move Ball on canvas function
+function moveBall() {
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+
+  // Wall collision detection on ( X axis )
+  if (ball.x + ball.size > canvas.width || ball.x - ball.size < 0) {
+    ball.dx *= -1;
+  }
+  // Wall collision detection on ( Y axis )
+  else if (ball.y + ball.size > canvas.height || ball.y - ball.size < 0) {
+    ball.dy *= -1;
+  }
+
+  // Paddle collision
+  if (
+    ball.x - ball.size > paddle.x &&
+    ball.x + ball.size < paddle.x + paddle.w &&
+    ball.y + ball.size > paddle.y
+  ) {
+    ball.dy = -ball.speed;
+  }
+
+  // Bricks collision detection
+  bricks.forEach((column) => {
+    column.forEach((brick) => {
+      if (brick.visible) {
+        if (
+          ball.x - ball.size > brick.x && // left brick side check
+          ball.x + ball.size < brick.x + brick.w && // right brick side check
+          ball.y + ball.size > brick.y && // top brick side check
+          ball.y - ball.size < brick.y + brick.h // bottom brick side check
+        ) {
+          ball.dy *= -1;
+          brick.visible = false;
+
+          increaseScore();
+        }
+      }
+    });
+  });
+
+  // Hit bottom wall - Lose
+  if (ball.y + ball.size > canvas.height) {
+    showAllBricks();
+    score = 0;
+  }
+
+}
+
+// increase score function
+function increaseScore() {
+  score++;
+
+  if (score % (bricksRowCount * bricksColCount) === 0) {
+    showAllBricks();
+  }
+}
+
+// Make all bricks appear function
+function showAllBricks() {
+  bricks.forEach(column => {
+    column.forEach(brick => (brick.visible = true));
+  });
+}
+
 
 // Main draw function
 function drawCanvas() {
@@ -116,6 +187,7 @@ function drawCanvas() {
 // update function
 function update() {
   movePaddle();
+  moveBall();
 
   drawCanvas();
 
